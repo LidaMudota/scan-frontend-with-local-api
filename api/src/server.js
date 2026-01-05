@@ -24,6 +24,9 @@ app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
 app.use((req, _res, next) => {
+  if (!req.url.includes('//')) {
+    return next();
+  }
   const [path = '', query = ''] = req.url.split('?');
   const normalizedPath = path.replace(/\/{2,}/g, '/');
   req.url = query ? `${normalizedPath}?${query}` : normalizedPath;

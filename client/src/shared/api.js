@@ -2,13 +2,12 @@ const API_PREFIX = '/api/v1';
 const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://localhost:4000${API_PREFIX}`;
 
 function buildApiUrl(path = '') {
-  const baseWithoutTrailingSlash = (API_BASE || '').replace(/\/+$/, '');
-  const baseWithPrefix = baseWithoutTrailingSlash.endsWith(API_PREFIX)
-    ? baseWithoutTrailingSlash
-    : `${baseWithoutTrailingSlash}${API_PREFIX}`;
-  const normalizedPath = path.replace(/^\/+/, '');
-  const url = new URL(normalizedPath, `${baseWithPrefix}/`);
-  return url.toString();
+  const trimmedBase = (API_BASE || '').replace(/\/+$/, '');
+  const baseHasPrefix = trimmedBase.includes(API_PREFIX);
+  const baseWithPrefix = baseHasPrefix ? trimmedBase : `${trimmedBase}${API_PREFIX}`;
+  const normalizedBase = baseWithPrefix.replace(/\/+$/, '');
+  const normalizedPath = `/${String(path || '').replace(/^\/+/, '')}`;
+  return `${normalizedBase}${normalizedPath}`;
 }
 
 async function request(path, { method = 'GET', body, token } = {}) {
@@ -16,6 +15,9 @@ async function request(path, { method = 'GET', body, token } = {}) {
   if (token) headers.Authorization = `Bearer ${token}`;
 
   const url = buildApiUrl(path);
+  if (import.meta.env.DEV) {
+    console.debug('[api]', method, url);
+  }
 
   let response;
   try {
