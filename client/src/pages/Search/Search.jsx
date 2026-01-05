@@ -130,8 +130,15 @@ export default function Search() {
       return <Loader />;
     }
     return searchState.docs.map((doc, idx) => {
+      if (doc.fail) {
+        return (
+          <div className="card" key={doc.fail?.errorCode || idx}>
+            <div className="error">Ошибка: {doc.fail.errorMessage || 'Документ не найден'}</div>
+          </div>
+        );
+      }
       const item = doc.ok;
-      if (!item) return <div className="card" key={idx}>Документ не найден</div>;
+      if (!item) return null;
       const date = new Date(item.issueDate);
       const formatted = `${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}.${date.getFullYear()}`;
       return (
@@ -271,15 +278,17 @@ export default function Search() {
           {searchState.histogramsLoading && <Loader />}
           {searchState.histogramsError && <div className="error">{searchState.histogramsError}</div>}
           {!searchState.histogramsLoading && histogramRows.length > 0 && (
-            <Carousel itemsPerView={4}>
-              {histogramRows.map((row) => (
-                <div className="summary-item card" key={row.date}>
-                  <div className="text-muted">{new Date(row.date).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}</div>
-                  <div>Всего: {row.total}</div>
-                  <div>Риски: {row.risk}</div>
-                </div>
-              ))}
-            </Carousel>
+            <div className="summary-scroll">
+              <Carousel itemsPerView={4}>
+                {histogramRows.map((row) => (
+                  <div className="summary-item card" key={row.date}>
+                    <div className="text-muted">{new Date(row.date).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}</div>
+                    <div>Всего: {row.total}</div>
+                    <div>Риски: {row.risk}</div>
+                  </div>
+                ))}
+              </Carousel>
+            </div>
           )}
         </div>
       </div>

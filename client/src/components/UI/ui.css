@@ -21,21 +21,25 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
 }
 
 .carousel__window {
-  overflow: hidden;
+  overflow: auto;
   flex: 1;
+  min-width: 0;
 }
 
 .carousel__track {
   display: flex;
   transition: transform 0.3s ease;
+  min-width: max-content;
 }
 
 .carousel__slide {
   padding: 8px;
   box-sizing: border-box;
+  flex: 0 0 auto;
 }
 
 .carousel__control {

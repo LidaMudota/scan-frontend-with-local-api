@@ -65,7 +65,7 @@ const searchSlice = createSlice({
       .addCase(runSearch.fulfilled, (state, action) => {
         state.histogramsLoading = false;
         state.histograms = action.payload.histograms?.data || [];
-        state.ids = action.payload.items || [];
+        state.ids = (action.payload.items || []).map((item) => item.encodedId);
         state.params = action.payload.params;
       })
       .addCase(runSearch.rejected, (state, action) => {

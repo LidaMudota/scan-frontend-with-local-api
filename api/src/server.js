@@ -73,6 +73,26 @@ function histogramValue(base, index) {
   return ((base + index * 7) % 83) + 5;
 }
 
+function stableSeed(input) {
+  return Array.from(String(input)).reduce(
+    (acc, char) => (acc * 31 + char.charCodeAt(0)) % 100000,
+    17
+  );
+}
+
+function extractDocMeta(id) {
+  if (typeof id !== 'string') return null;
+  const dashMatch = /^doc-(.+?)-(\d+)$/.exec(id);
+  if (dashMatch) {
+    return { inn: dashMatch[1], index: Number(dashMatch[2]) };
+  }
+  const legacyMatch = /doc:(\d+):(\d+)/.exec(id);
+  if (legacyMatch) {
+    return { inn: legacyMatch[1], index: Number(legacyMatch[2]) };
+  }
+  return null;
+}
+
 app.post(`${API_PREFIX}/account/register`, (req, res) => {
   console.log('[HIT] register', req.method, req.originalUrl, req.body);
   const { login, password, name } = req.body || {};
@@ -172,14 +192,16 @@ app.post(`${API_PREFIX}/objectsearch/histograms`, verifyToken, (req, res) => {
 });
 
 app.post(`${API_PREFIX}/objectsearch`, verifyToken, (req, res) => {
-  const { limit = 10, searchContext } = req.body || {};
+  const { limit = 10, searchContext, issueDateInterval } = req.body || {};
   const inn =
     searchContext?.targetSearchEntitiesContext?.targetSearchEntities?.[0]?.inn?.toString() || '0';
-  const count = Math.min(Number(limit) || 0, 1000);
+  const { startDate, endDate } = issueDateInterval || {};
+  const count = Math.min(Math.max(Number(limit) || 0, 30), 1000);
+  const seed = stableSeed(`${inn}-${startDate || ''}-${endDate || ''}`);
   const items = Array.from({ length: count }, (_, idx) => ({
-    encodedId: `doc:${inn}:${idx + 1}`,
+    encodedId: `doc-${inn}-${idx + 1}`,
     influence: (idx % 12) + 1,
-    similarCount: (idx * 3) % 7,
+    similarCount: (seed + idx * 3) % 7,
   }));
 
   return res.json({ items, mappings: [] });
@@ -196,21 +218,21 @@ app.post(`${API_PREFIX}/documents`, verifyToken, (req, res) => {
   }
 
   const responses = ids.map((id) => {
-    const match = /doc:(\d+):(\d+)/.exec(id);
-    if (!match) {
+    const meta = extractDocMeta(id);
+    if (!meta) {
       return { fail: { errorCode: 'NOT_FOUND', errorMessage: 'Документ не распознан' } };
     }
 
-    const [, inn, indexStr] = match;
-    const idx = Number(indexStr);
-    const month = (idx - 1) % 12;
-    const issueDate = new Date(2024, month, (idx % 27) + 1);
-    const baseUrl = `https://example.com/articles/${inn}/${idx}`;
-    const hasImage = idx % 2 === 0;
+    const { inn, index } = meta;
+    const month = (index - 1) % 12;
+    const issueDate = new Date(2024, month, (index % 27) + 1, 12);
+    const baseUrl = `https://example.com/articles/${inn}/${index}`;
+    const hasImage = index % 2 === 0;
+    const baseSeed = stableSeed(`${inn}-${index}`);
     const markup = [
-      `<p>Материал по ИНН ${inn} номер ${idx}. Этот текст иллюстрирует выдачу поиска.</p>`,
+      `<p>Материал по ИНН ${inn} номер ${index}. Этот текст иллюстрирует выдачу поиска.</p>`,
       '<p>Мы формируем последовательное поведение без случайностей.</p>',
-      hasImage ? `<img src="https://via.placeholder.com/640x360?text=${inn}-${idx}" alt="placeholder" />` : '',
+      hasImage ? `<img src="https://via.placeholder.com/640x360?text=${inn}-${index}" alt="placeholder" />` : '',
       '<p>Данные сгенерированы локальным API.</p>',
     ]
       .filter(Boolean)
@@ -222,13 +244,13 @@ app.post(`${API_PREFIX}/documents`, verifyToken, (req, res) => {
         issueDate: issueDate.toISOString(),
         url: baseUrl,
         source: { name: 'Demo Source' },
-        title: { text: `Публикация ${idx} для ИНН ${inn}` },
+        title: { text: `Публикация ${index} для ИНН ${inn}` },
         content: { markup },
         attributes: {
-          isTechNews: idx % 3 === 0,
-          isAnnouncement: idx % 4 === 0,
-          isDigest: idx % 5 === 0,
-          wordCount: 500 + idx * 3,
+          isTechNews: (baseSeed + index) % 3 === 0,
+          isAnnouncement: (baseSeed + index) % 4 === 0,
+          isDigest: (baseSeed + index) % 5 === 0,
+          wordCount: 500 + index * 3,
         },
       },
     };
