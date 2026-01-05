@@ -21,7 +21,7 @@ const tariffs = [
 
 export default function Home() {
   const navigate = useNavigate();
-  const { isAuthed } = useAuth();
+  const { isAuth } = useAuth();
   const tariffKey = useSelector((state) => state.account.data?.tariff);
 
   const cards = useMemo(
@@ -56,7 +56,7 @@ export default function Home() {
             Авторизация, защита маршрутов, валидация запросов и быстрая доставка результатов в одном клиенте.
           </p>
           <div className="hero__actions">
-            {isAuthed ? (
+            {isAuth ? (
               <button className="btn primary" onClick={() => navigate('/search')}>
                 Запросить данные
               </button>

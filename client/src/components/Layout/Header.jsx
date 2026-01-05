@@ -9,14 +9,14 @@ import './layout.css';
 export default function Header() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { token, isAuthed, logout } = useAuth();
+  const { token, isAuth, user, logout } = useAuth();
   const { data, loading } = useSelector((state) => state.account);
 
   useEffect(() => {
-    if (isAuthed && token) {
+    if (isAuth && token) {
       dispatch(fetchAccountInfo(token));
     }
-  }, [dispatch, token, isAuthed]);
+  }, [dispatch, token, isAuth]);
 
   const onLogout = () => {
     logout();
@@ -24,7 +24,8 @@ export default function Header() {
     navigate('/');
   };
 
-  const initials = data?.user?.name?.slice(0, 2)?.toUpperCase() || 'AU';
+  const displayName = data?.user?.name || user?.login || 'Пользователь';
+  const initials = displayName?.slice(0, 2)?.toUpperCase() || 'AU';
 
   return (
     <header className="header">
@@ -33,7 +34,7 @@ export default function Header() {
         <Link to="#">Тарифы</Link>
         <Link to="#">FAQ</Link>
       </nav>
-      {!isAuthed && (
+      {!isAuth && (
         <div className="actions">
           <button className="btn" onClick={() => navigate('/register')}>Зарегистрироваться</button>
           <button className="btn primary" onClick={() => navigate('/login')}>
@@ -41,7 +42,7 @@ export default function Header() {
           </button>
         </div>
       )}
-      {isAuthed && (
+      {isAuth && (
         <div className="actions">
           <div className="limit-panel" aria-live="polite">
             {loading && <Loader />}
@@ -63,7 +64,7 @@ export default function Header() {
               {initials}
             </div>
             <div>
-              <div>{data?.user?.name || 'Пользователь'}</div>
+              <div>{displayName}</div>
               <button className="btn" onClick={onLogout}>
                 Выйти
               </button>

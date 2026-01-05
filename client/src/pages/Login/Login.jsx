@@ -14,7 +14,7 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const { login: loginCtx } = useAuth();
+  const { login: authLogin } = useAuth();
 
   const registeredNotice = useMemo(() => {
     const params = new URLSearchParams(location.search);
@@ -30,7 +30,7 @@ export default function Login() {
     setLoading(true);
     try {
       const data = await loginRequest({ login, password });
-      loginCtx(data.accessToken, data.expire);
+      authLogin({ accessToken: data.accessToken, expire: data.expire, login });
       dispatch(fetchAccountInfo(data.accessToken));
       navigate('/');
     } catch (err) {
