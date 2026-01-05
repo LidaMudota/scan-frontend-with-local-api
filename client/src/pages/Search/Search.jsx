@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useAuth } from '../../features/auth/AuthContext';
 import { runSearch, loadDocuments, resetSearch } from '../../features/search/searchSlice';
-import { isValidInn } from '../../shared/inn';
+import { isValidInn, normalizeInn } from '../../shared/inn';
 import { makeInterval, notInFuture } from '../../shared/dates';
 import Loader from '../../components/UI/Loader';
 import Carousel from '../../components/UI/Carousel';
@@ -30,6 +30,8 @@ export default function Search() {
 
   useEffect(() => () => dispatch(resetSearch()), [dispatch]);
 
+  const innDigits = normalizeInn(form.inn);
+  const hasInnValue = innDigits.length > 0;
   const isInnValid = isValidInn(form.inn);
   const isTonalityValid = Boolean(form.tonality);
   const isLimitValid = Number(form.limit) >= 1 && Number(form.limit) <= 1000;
@@ -40,7 +42,7 @@ export default function Search() {
   }, [form.dateStart, form.dateEnd]);
 
   useEffect(() => {
-    if (!isInnValid) {
+    if (hasInnValue && !isInnValid) {
       setValidationError('Введите корректный ИНН (10 или 12 цифр с проверкой).');
     } else if (!datesValid) {
       setValidationError('Проверьте даты: не в будущем и начало не позже конца.');
@@ -51,9 +53,10 @@ export default function Search() {
     } else {
       setValidationError('');
     }
-  }, [isInnValid, datesValid, isLimitValid, isTonalityValid]);
+  }, [hasInnValue, isInnValid, datesValid, isLimitValid, isTonalityValid]);
 
-  const disabled = Boolean(validationError) || searchState.histogramsLoading;
+  const disabled =
+    !hasInnValue || !isInnValid || !datesValid || !isLimitValid || !isTonalityValid || searchState.histogramsLoading;
 
   const handleChange = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -68,7 +71,7 @@ export default function Search() {
           targetSearchEntities: [
             {
               type: 'company',
-              inn: Number(form.inn),
+              inn: Number(innDigits),
               maxFullness: Boolean(form.maxFullness),
               inBusinessNews: form.inBusinessNews ? true : null,
             },
