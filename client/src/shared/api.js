@@ -21,6 +21,10 @@ export function loginRequest(credentials) {
   return request('/account/login', { method: 'POST', body: credentials });
 }
 
+export function registerRequest(body) {
+  return request('/account/register', { method: 'POST', body });
+}
+
 export function accountInfoRequest(token) {
   return request('/account/info', { token });
 }

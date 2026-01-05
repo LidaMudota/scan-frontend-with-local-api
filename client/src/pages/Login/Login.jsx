@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { loginRequest } from '../../shared/api';
 import { useAuth } from '../../features/auth/AuthContext';
@@ -12,8 +12,14 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const { login: loginCtx } = useAuth();
+
+  const registeredNotice = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get('registered') === '1';
+  }, [location.search]);
 
   const disabled = !login || !password || loading;
 
@@ -55,6 +61,7 @@ export default function Login() {
           <button type="submit" className="btn primary" disabled={disabled}>
             {loading ? 'Входим...' : 'Войти'}
           </button>
+          {registeredNotice && <div className="notice">Аккаунт создан. Теперь войдите.</div>}
           {error && <div className="error">{error}</div>}
         </form>
         <div className="login-extra">

@@ -41,3 +41,8 @@ input:focus, select:focus {
   color: #b91c1c;
   font-weight: 700;
 }
+
+.notice {
+  color: #15803d;
+  font-weight: 700;
+}

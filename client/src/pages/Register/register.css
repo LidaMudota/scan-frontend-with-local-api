@@ -1,0 +1,43 @@
+.register-page {
+  max-width: 540px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.register-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.register-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.register-form input {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-size: 15px;
+}
+
+.hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.error {
+  color: #dc2626;
+  font-weight: 700;
+}

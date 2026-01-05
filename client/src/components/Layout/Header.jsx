@@ -35,7 +35,7 @@ export default function Header() {
       </nav>
       {!isAuthed && (
         <div className="actions">
-          <button className="btn" onClick={() => navigate('#')}>Зарегистрироваться</button>
+          <button className="btn" onClick={() => navigate('/register')}>Зарегистрироваться</button>
           <button className="btn primary" onClick={() => navigate('/login')}>
             Войти
           </button>

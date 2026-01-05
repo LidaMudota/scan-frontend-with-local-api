@@ -1,6 +1,13 @@
 const express = require('express');
 const cors = require('cors');
-const { users } = require('./data');
+const {
+  users,
+  tariffs,
+  addUser,
+  findUserByLogin,
+  verifyUserCredentials,
+  getUserById,
+} = require('./data');
 const { createToken, verifyToken } = require('./auth');
 
 const app = express();
@@ -14,8 +21,17 @@ app.use(
 );
 app.use(express.json());
 
-function findUser(login, password) {
-  return users.find((user) => user.login === login && user.password === password);
+function validatePassword(password) {
+  if (typeof password !== 'string') return false;
+  const hasLength = password.length >= 8;
+  const hasDigit = /\d/.test(password);
+  const hasLetter = /[a-zA-Z]/.test(password);
+  return hasLength && hasDigit && hasLetter;
+}
+
+function validateName(name) {
+  if (typeof name !== 'string') return false;
+  return name.trim().length >= 2 && name.trim().length <= 40;
 }
 
 function monthRange(startDate, endDate) {
@@ -33,30 +49,54 @@ function histogramValue(base, index) {
   return ((base + index * 7) % 83) + 5;
 }
 
+app.post(`${API_PREFIX}/account/register`, (req, res) => {
+  const { login, password, name } = req.body || {};
+
+  if (!login || typeof login !== 'string') {
+    return res.status(400).json({ message: 'Некорректный логин' });
+  }
+
+  if (!validateName(name)) {
+    return res.status(400).json({ message: 'Некорректное имя' });
+  }
+
+  if (!validatePassword(password)) {
+    return res.status(400).json({ message: 'Пароль слишком простой' });
+  }
+
+  const existing = findUserByLogin(login);
+  if (existing) {
+    return res.status(409).json({ message: 'Логин уже занят' });
+  }
+
+  addUser({ login, password, name });
+  return res.status(201).json({ message: 'OK' });
+});
+
 app.post(`${API_PREFIX}/account/login`, (req, res) => {
   const { login, password } = req.body || {};
-  const found = findUser(login, password);
+  const found = verifyUserCredentials(login, password);
 
   if (!found) {
     return res.status(401).json({ message: 'Неверный логин или пароль' });
   }
 
-  const { token, expire } = createToken(found.id);
-  return res.json({ accessToken: token, expire });
+  const { token, expire, expireMs } = createToken(found.id);
+  return res.json({ accessToken: token, expire, expireMs });
 });
 
 app.get(`${API_PREFIX}/account/info`, verifyToken, (req, res) => {
-  const found = users.find((user) => user.id === req.userId);
+  const found = getUserById(req.userId);
   if (!found) {
     return res.status(404).json({ message: 'Пользователь не найден' });
   }
 
   return res.json({
     eventFiltersInfo: {
-      usedCompanyCount: found.usedCompanyCount,
-      companyLimit: found.companyLimit,
+      usedCompanyCount: found.usedCompanyCount ?? 0,
+      companyLimit: found.companyLimit ?? 1000,
     },
-    tariff: found.tariff,
+    tariff: found.tariff || tariffs.beginner,
     user: {
       name: found.name,
     },
