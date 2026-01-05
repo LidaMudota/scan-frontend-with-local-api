@@ -1,13 +1,35 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api/v1';
+const API_PREFIX = '/api/v1';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || `http://localhost:4000${API_PREFIX}`;
+
+function buildApiUrl(path = '') {
+  const baseWithoutTrailingSlash = (API_BASE || '').replace(/\/+$/, '');
+  const baseWithPrefix = baseWithoutTrailingSlash.endsWith(API_PREFIX)
+    ? baseWithoutTrailingSlash
+    : `${baseWithoutTrailingSlash}${API_PREFIX}`;
+  const normalizedPath = path.replace(/^\/+/, '');
+  const url = new URL(normalizedPath, `${baseWithPrefix}/`);
+  return url.toString();
+}
 
 async function request(path, { method = 'GET', body, token } = {}) {
   const headers = { 'Content-Type': 'application/json' };
   if (token) headers.Authorization = `Bearer ${token}`;
-  const response = await fetch(`${API_BASE}${path}`, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-  });
+
+  const url = buildApiUrl(path);
+
+  let response;
+  try {
+    response = await fetch(url, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  } catch (error) {
+    if (error instanceof TypeError) {
+      throw new Error('API недоступен');
+    }
+    throw error;
+  }
 
   const data = await response.json().catch(() => null);
   if (!response.ok) {

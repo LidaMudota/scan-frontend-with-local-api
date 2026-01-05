@@ -14,11 +14,22 @@ const app = express();
 const PORT = 4000;
 const API_PREFIX = '/api/v1';
 
-app.use(
-  cors({
-    origin: 'http://localhost:5173',
-  })
-);
+const corsOptions = {
+  origin: 'http://localhost:5173',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
+app.use((req, _res, next) => {
+  const [path = '', query = ''] = req.url.split('?');
+  const normalizedPath = path.replace(/\/{2,}/g, '/');
+  req.url = query ? `${normalizedPath}?${query}` : normalizedPath;
+  next();
+});
+
 app.use(express.json());
 
 function validatePassword(password) {
