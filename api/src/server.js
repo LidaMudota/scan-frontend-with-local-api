@@ -21,7 +21,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
 
 app.use((req, _res, next) => {
   if (!req.url.includes('//')) {
@@ -35,6 +34,10 @@ app.use((req, _res, next) => {
 
 app.use(express.json());
 
+function sendError(res, status, message) {
+  return res.status(status).json({ status, message });
+}
+
 function validatePassword(password) {
   if (typeof password !== 'string') return false;
   const hasLength = password.length >= 8;
@@ -43,9 +46,16 @@ function validatePassword(password) {
   return hasLength && hasDigit && hasLetter;
 }
 
+function validateLogin(login) {
+  if (typeof login !== 'string') return false;
+  return /^[A-Za-z0-9._-]{3,32}$/.test(login);
+}
+
 function validateName(name) {
   if (typeof name !== 'string') return false;
-  return name.trim().length >= 2 && name.trim().length <= 40;
+  const trimmed = name.trim();
+  if (trimmed.length < 2 || trimmed.length > 32) return false;
+  return /^[\p{L}\s-]+$/u.test(trimmed);
 }
 
 function monthRange(startDate, endDate) {
@@ -64,26 +74,28 @@ function histogramValue(base, index) {
 }
 
 app.post(`${API_PREFIX}/account/register`, (req, res) => {
+  console.log('[HIT] register', req.method, req.originalUrl, req.body);
   const { login, password, name } = req.body || {};
 
-  if (!login || typeof login !== 'string') {
-    return res.status(400).json({ message: 'Некорректный логин' });
+  if (!validateLogin(login)) {
+    return sendError(res, 400, 'Некорректный логин');
   }
 
   if (!validateName(name)) {
-    return res.status(400).json({ message: 'Некорректное имя' });
+    return sendError(res, 400, 'Некорректное имя');
   }
 
   if (!validatePassword(password)) {
-    return res.status(400).json({ message: 'Пароль слишком простой' });
+    return sendError(res, 400, 'Пароль слишком простой');
   }
 
   const existing = findUserByLogin(login);
   if (existing) {
-    return res.status(409).json({ message: 'Логин уже занят' });
+    return sendError(res, 409, 'Логин уже занят');
   }
 
-  addUser({ login, password, name });
+  const trimmedName = name.trim();
+  addUser({ login, password, name: trimmedName });
   return res.status(201).json({ message: 'OK' });
 });
 
@@ -92,7 +104,7 @@ app.post(`${API_PREFIX}/account/login`, (req, res) => {
   const found = verifyUserCredentials(login, password);
 
   if (!found) {
-    return res.status(401).json({ message: 'Неверный логин или пароль' });
+    return sendError(res, 401, 'Неверный логин или пароль');
   }
 
   const { token, expire, expireMs } = createToken(found.id);
@@ -102,7 +114,7 @@ app.post(`${API_PREFIX}/account/login`, (req, res) => {
 app.get(`${API_PREFIX}/account/info`, verifyToken, (req, res) => {
   const found = getUserById(req.userId);
   if (!found) {
-    return res.status(404).json({ message: 'Пользователь не найден' });
+    return sendError(res, 404, 'Пользователь не найден');
   }
 
   return res.json({
@@ -176,11 +188,11 @@ app.post(`${API_PREFIX}/objectsearch`, verifyToken, (req, res) => {
 app.post(`${API_PREFIX}/documents`, verifyToken, (req, res) => {
   const { ids = [] } = req.body || {};
   if (!Array.isArray(ids)) {
-    return res.status(400).json({ message: 'ids должны быть массивом' });
+    return sendError(res, 400, 'ids должны быть массивом');
   }
 
   if (ids.length > 100) {
-    return res.status(400).json({ message: 'Максимум 100 документов за запрос' });
+    return sendError(res, 400, 'Максимум 100 документов за запрос');
   }
 
   const responses = ids.map((id) => {
@@ -226,7 +238,7 @@ app.post(`${API_PREFIX}/documents`, verifyToken, (req, res) => {
 });
 
 app.use((req, res) => {
-  res.status(404).json({ message: 'Неизвестный маршрут' });
+  sendError(res, 404, 'Неизвестный маршрут');
 });
 
 app.listen(PORT, () => {
