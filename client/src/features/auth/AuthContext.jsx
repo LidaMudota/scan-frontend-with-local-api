@@ -7,8 +7,14 @@ const STORAGE_LOGIN = 'scan_login';
 const AuthContext = createContext(null);
 
 function parseExpire(value) {
-  if (!value) return null;
-  const parsed = new Date(value).getTime();
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  const stringValue = String(value).trim();
+  const numeric = Number(stringValue);
+  if (Number.isFinite(numeric) && stringValue.match(/^\d+$/)) {
+    return numeric;
+  }
+  const parsed = Date.parse(stringValue);
   return Number.isNaN(parsed) ? null : parsed;
 }
 
@@ -37,13 +43,17 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const login = useCallback(({ accessToken, expire: expireIso, login: loginName }) => {
-    const expireMs = parseExpire(expireIso);
+  const login = useCallback(({ accessToken, expire: expireIso, expireMs, login: loginName }) => {
+    const parsedExpire = parseExpire(expireMs ?? expireIso);
     setToken(accessToken);
-    setExpire(expireMs);
+    setExpire(parsedExpire);
     setUser(loginName ? { login: loginName } : null);
     localStorage.setItem(STORAGE_TOKEN, accessToken);
-    localStorage.setItem(STORAGE_EXPIRE, expireIso);
+    if (parsedExpire) {
+      localStorage.setItem(STORAGE_EXPIRE, String(parsedExpire));
+    } else {
+      localStorage.removeItem(STORAGE_EXPIRE);
+    }
     if (loginName) {
       localStorage.setItem(STORAGE_LOGIN, loginName);
     } else {

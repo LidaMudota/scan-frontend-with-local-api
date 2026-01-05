@@ -34,6 +34,9 @@ export default function Header() {
         <Link to="#">Тарифы</Link>
         <Link to="#">FAQ</Link>
       </nav>
+      <div className="auth-indicator" aria-live="polite">
+        auth: {isAuth ? 'yes' : 'no'}
+      </div>
       {!isAuth && (
         <div className="actions">
           <button className="btn" onClick={() => navigate('/register')}>Зарегистрироваться</button>

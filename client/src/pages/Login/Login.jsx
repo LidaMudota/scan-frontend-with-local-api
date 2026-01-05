@@ -30,7 +30,7 @@ export default function Login() {
     setLoading(true);
     try {
       const data = await loginRequest({ login, password });
-      authLogin({ accessToken: data.accessToken, expire: data.expire, login });
+      authLogin({ accessToken: data.accessToken, expire: data.expire, expireMs: data.expireMs, login });
       dispatch(fetchAccountInfo(data.accessToken));
       navigate('/');
     } catch (err) {
