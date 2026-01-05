@@ -1,0 +1,57 @@
+.loader {
+  width: 32px;
+  height: 32px;
+  border: 4px solid #dbeafe;
+  border-top-color: #1d4ed8;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.carousel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.carousel__window {
+  overflow: hidden;
+  flex: 1;
+}
+
+.carousel__track {
+  display: flex;
+  transition: transform 0.3s ease;
+}
+
+.carousel__slide {
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.carousel__control {
+  background: #e0f2fe;
+  border: 1px solid #93c5fd;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.carousel__control:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.carousel__control:not(:disabled):hover {
+  background: #bfdbfe;
+}
