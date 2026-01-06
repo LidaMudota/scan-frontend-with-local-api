@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useAuth } from '../../features/auth/AuthContext';
 import { runSearch, loadDocuments, resetSearch } from '../../features/search/searchSlice';
@@ -27,6 +27,8 @@ export default function Search() {
     dateEnd: '',
   });
   const [validationError, setValidationError] = useState('');
+  const [hasScrolledToResults, setHasScrolledToResults] = useState(false);
+  const resultsRef = useRef(null);
 
   useEffect(() => () => dispatch(resetSearch()), [dispatch]);
 
@@ -99,6 +101,7 @@ export default function Search() {
     e.preventDefault();
     if (disabled) return;
     const payload = buildPayload();
+    setHasScrolledToResults(false);
     dispatch(runSearch({ payload, token }));
   };
 
@@ -109,6 +112,8 @@ export default function Search() {
   }, [dispatch, token, searchState.ids.length, searchState.docs.length, searchState.docsLoading]);
 
   const canLoadMore = searchState.loadedCount < searchState.ids.length;
+  const resultsTotal = searchState.ids.length;
+  const resultsShown = searchState.loadedCount || searchState.docs.length;
 
   const histogramRows = useMemo(() => {
     const totals = searchState.histograms.find((h) => h.histogramType === 'totalDocuments')?.data || [];
@@ -126,9 +131,6 @@ export default function Search() {
   }, [searchState.histograms]);
 
   const renderDocs = () => {
-    if (searchState.docs.length === 0 && searchState.docsLoading) {
-      return <Loader />;
-    }
     return searchState.docs.map((doc, idx) => {
       if (doc.fail) {
         return (
@@ -166,6 +168,18 @@ export default function Search() {
       );
     });
   };
+
+  useEffect(() => {
+    if (!resultsRef.current) return;
+    const hasResults = searchState.ids.length > 0 || searchState.docs.length > 0;
+    const summaryReady = !searchState.histogramsLoading && histogramRows.length > 0;
+    const docsReady = searchState.docs.length > 0;
+
+    if (hasResults && (summaryReady || docsReady) && !hasScrolledToResults) {
+      resultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setHasScrolledToResults(true);
+    }
+  }, [hasScrolledToResults, histogramRows.length, searchState.docs.length, searchState.histogramsLoading, searchState.ids.length]);
 
   return (
     <div className="search-page">
@@ -293,17 +307,53 @@ export default function Search() {
         </div>
       </div>
 
-      <section className="cards-grid">
-        {renderDocs()}
-        {searchState.docsError && <div className="error">{searchState.docsError}</div>}
-      </section>
-      {canLoadMore && (
-        <div className="load-more">
-          <button className="btn primary" onClick={() => dispatch(loadDocuments({ token }))} disabled={searchState.docsLoading}>
-            {searchState.docsLoading ? 'Загрузка...' : 'Показать больше'}
-          </button>
+      <section className="results-section" ref={resultsRef}>
+        <div className="results-header">
+          <h2>Результаты поиска</h2>
+          {resultsTotal > 0 && (
+            <p className="results-subtitle">Показаны первые {Math.min(resultsShown, resultsTotal)} из {resultsTotal}</p>
+          )}
         </div>
-      )}
+
+        <div className="cards-grid">
+          {searchState.docsLoading && searchState.docs.length === 0 && (
+            <div className="skeleton-list">
+              {[...Array(4)].map((_, idx) => (
+                <div className="card doc-skeleton" key={idx}>
+                  <div className="skeleton skeleton--meta" />
+                  <div className="skeleton skeleton--title" />
+                  <div className="skeleton skeleton--text" />
+                  <div className="skeleton skeleton--text" />
+                  <div className="skeleton skeleton--footer" />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!searchState.docsLoading && resultsTotal === 0 && !searchState.histogramsLoading && !searchState.histogramsError && (
+            <div className="empty-state card">
+              <h3>Ничего не найдено</h3>
+              <p className="text-muted">Попробуйте изменить параметры запроса или проверить корректность ИНН.</p>
+            </div>
+          )}
+
+          {renderDocs()}
+          {searchState.docsLoading && searchState.docs.length > 0 && (
+            <div className="inline-loader">
+              <Loader />
+            </div>
+          )}
+          {searchState.docsError && <div className="error">{searchState.docsError}</div>}
+        </div>
+
+        {canLoadMore && (
+          <div className="load-more">
+            <button className="btn primary" onClick={() => dispatch(loadDocuments({ token }))} disabled={searchState.docsLoading}>
+              {searchState.docsLoading ? 'Загрузка...' : 'Показать больше'}
+            </button>
+          </div>
+        )}
+      </section>
     </div>
   );
 }
