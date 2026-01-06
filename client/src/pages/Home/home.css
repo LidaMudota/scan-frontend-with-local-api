@@ -42,11 +42,11 @@
 
 .tariff-card {
   border: 1px solid transparent;
-  transition: border 0.2s ease, transform 0.2s ease;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
 }
 
 .tariff-card:hover {
-  transform: translateY(-4px);
+  --card-shift: -4px;
   border-color: #bfdbfe;
 }
 
