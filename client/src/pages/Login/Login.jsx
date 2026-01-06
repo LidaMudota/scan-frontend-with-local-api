@@ -4,7 +4,6 @@ import { useDispatch } from 'react-redux';
 import { loginRequest } from '../../shared/api';
 import { useAuth } from '../../features/auth/AuthContext';
 import { fetchAccountInfo } from '../../features/account/accountSlice';
-import { Button } from '../../shared/ui';
 import './login.css';
 
 export default function Login() {
@@ -59,15 +58,15 @@ export default function Login() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-          <Button type="submit" variant="primary" disabled={disabled}>
+          <button type="submit" className="btn primary" disabled={disabled}>
             {loading ? 'Входим...' : 'Войти'}
-          </Button>
+          </button>
           {registeredNotice && <div className="notice">Аккаунт создан. Теперь войдите.</div>}
           {error && <div className="error">{error}</div>}
         </form>
         <div className="login-extra">
-          <Button>Войти через Госуслуги</Button>
-          <Button>Восстановить доступ</Button>
+          <button className="btn">Войти через Госуслуги</button>
+          <button className="btn">Восстановить доступ</button>
         </div>
       </div>
     </div>

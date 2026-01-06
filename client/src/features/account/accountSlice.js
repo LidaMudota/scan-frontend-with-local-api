@@ -1,11 +1,11 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { fetchAccount } from '../../entities/account/api';
+import { accountInfoRequest } from '../../shared/api';
 
 export const fetchAccountInfo = createAsyncThunk(
   'account/fetchAccountInfo',
   async (token, { rejectWithValue }) => {
     try {
-      const data = await fetchAccount(token);
+      const data = await accountInfoRequest(token);
       return data;
     } catch (err) {
       return rejectWithValue(err.message);

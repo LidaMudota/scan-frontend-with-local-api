@@ -1,12 +1,15 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { fetchDocuments, runCombinedSearch } from '../../entities/search/api';
+import { documentsRequest, histogramsRequest, objectSearchRequest } from '../../shared/api';
 
 export const runSearch = createAsyncThunk(
   'search/runSearch',
   async ({ payload, token }, { rejectWithValue }) => {
     try {
-      const combined = await runCombinedSearch(payload, token);
-      return { histograms: combined.histograms, items: combined.items, params: payload };
+      const [histograms, objectSearch] = await Promise.all([
+        histogramsRequest(payload, token),
+        objectSearchRequest(payload, token),
+      ]);
+      return { histograms, items: objectSearch.items, params: payload };
     } catch (err) {
       return rejectWithValue(err.message);
     }
@@ -22,7 +25,7 @@ export const loadDocuments = createAsyncThunk(
     if (nextIds.length === 0) return [];
 
     try {
-      const docs = await fetchDocuments(nextIds, token);
+      const docs = await documentsRequest(nextIds, token);
       return docs;
     } catch (err) {
       return rejectWithValue(err.message);
@@ -61,7 +64,7 @@ const searchSlice = createSlice({
       })
       .addCase(runSearch.fulfilled, (state, action) => {
         state.histogramsLoading = false;
-        state.histograms = action.payload.histograms || [];
+        state.histograms = action.payload.histograms?.data || [];
         state.ids = (action.payload.items || []).map((item) => item.encodedId);
         state.params = action.payload.params;
       })

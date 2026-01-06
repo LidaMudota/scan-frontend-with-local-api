@@ -4,8 +4,8 @@ import { useAuth } from '../../features/auth/AuthContext';
 import { runSearch, loadDocuments, resetSearch } from '../../features/search/searchSlice';
 import { isValidInn, normalizeInn } from '../../shared/inn';
 import { makeInterval, notInFuture } from '../../shared/dates';
+import Loader from '../../components/UI/Loader';
 import Carousel from '../../components/UI/Carousel';
-import { Button, EmptyState, Loader } from '../../shared/ui';
 import './search.css';
 
 export default function Search() {
@@ -282,9 +282,9 @@ export default function Search() {
             </label>
           </div>
           {validationError && <div className="error">{validationError}</div>}
-          <Button variant="primary" type="submit" disabled={disabled}>
+          <button className="btn primary" type="submit" disabled={disabled}>
             {searchState.histogramsLoading ? 'Ищем...' : 'Поиск'}
-          </Button>
+          </button>
         </form>
 
         <div className="search-column">
@@ -331,10 +331,10 @@ export default function Search() {
               )}
 
               {!searchState.docsLoading && resultsTotal === 0 && !searchState.histogramsLoading && !searchState.histogramsError && (
-                <EmptyState
-                  title="Ничего не найдено"
-                  description="Попробуйте изменить параметры запроса или проверить корректность ИНН."
-                />
+                <div className="empty-state card">
+                  <h3>Ничего не найдено</h3>
+                  <p className="text-muted">Попробуйте изменить параметры запроса или проверить корректность ИНН.</p>
+                </div>
               )}
 
               {renderDocs()}
@@ -348,13 +348,9 @@ export default function Search() {
 
             {canLoadMore && (
               <div className="load-more">
-                <Button
-                  variant="primary"
-                  onClick={() => dispatch(loadDocuments({ token }))}
-                  disabled={searchState.docsLoading}
-                >
+                <button className="btn primary" onClick={() => dispatch(loadDocuments({ token }))} disabled={searchState.docsLoading}>
                   {searchState.docsLoading ? 'Загрузка...' : 'Показать больше'}
-                </Button>
+                </button>
               </div>
             )}
           </section>

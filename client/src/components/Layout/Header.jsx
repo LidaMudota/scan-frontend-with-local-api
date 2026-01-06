@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
 import { useAuth } from '../../features/auth/AuthContext';
 import { fetchAccountInfo, clearAccount } from '../../features/account/accountSlice';
-import { Button, Loader } from '../../shared/ui';
+import Loader from '../UI/Loader';
 import './layout.css';
 
 export default function Header() {
@@ -39,8 +39,10 @@ export default function Header() {
       </div>
       {!isAuth && (
         <div className="actions">
-          <Button onClick={() => navigate('/register')}>Зарегистрироваться</Button>
-          <Button variant="primary" onClick={() => navigate('/login')}>Войти</Button>
+          <button className="btn" onClick={() => navigate('/register')}>Зарегистрироваться</button>
+          <button className="btn primary" onClick={() => navigate('/login')}>
+            Войти
+          </button>
         </div>
       )}
       {isAuth && (
@@ -66,7 +68,9 @@ export default function Header() {
             </div>
             <div>
               <div>{displayName}</div>
-              <Button onClick={onLogout}>Выйти</Button>
+              <button className="btn" onClick={onLogout}>
+                Выйти
+              </button>
             </div>
           </div>
         </div>
