@@ -3,12 +3,12 @@ import Header from './Header';
 import Footer from './Footer';
 import './layout.css';
 
-export default function Layout() {
+export default function Layout({ children }) {
   return (
     <div className="app-shell">
       <Header />
       <main className="main">
-        <Outlet />
+        {children || <Outlet />}
       </main>
       <Footer />
     </div>

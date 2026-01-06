@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import Carousel from '../../components/UI/Carousel';
 import { useAuth } from '../../features/auth/AuthContext';
+import { Button } from '../../shared/ui';
 import './home.css';
 
 const whyItems = [
@@ -38,9 +39,9 @@ export default function Home() {
               {isCurrent && <span className="badge">Текущий тариф</span>}
             </div>
             <p>{tariff.desc}</p>
-            <button className="btn primary" onClick={() => navigate('#')}>
+            <Button variant="primary" onClick={() => navigate('#')}>
               {isCurrent ? 'Перейти в личный кабинет' : 'Подробнее'}
-            </button>
+            </Button>
           </div>
         );
       }),
@@ -57,17 +58,17 @@ export default function Home() {
           </p>
           <div className="hero__actions">
             {isAuth ? (
-              <button className="btn primary" onClick={() => navigate('/search')}>
+              <Button variant="primary" onClick={() => navigate('/search')}>
                 Запросить данные
-              </button>
+              </Button>
             ) : (
-              <button className="btn primary" onClick={() => navigate('/login')}>
+              <Button variant="primary" onClick={() => navigate('/login')}>
                 Войти и начать
-              </button>
+              </Button>
             )}
-            <button className="btn" onClick={() => navigate('#')}>
+            <Button onClick={() => navigate('#')}>
               Узнать больше
-            </button>
+            </Button>
           </div>
         </div>
         <div className="hero__illustration">Аналитика без лишних движений</div>

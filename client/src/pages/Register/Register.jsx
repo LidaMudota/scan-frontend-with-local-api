@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { registerRequest } from '../../shared/api';
+import { Button } from '../../shared/ui';
 import './register.css';
 
 function isPasswordValid(value) {
@@ -65,9 +66,9 @@ export default function Register() {
             />
             <p className="hint">Минимум 8 символов, 1 буква и 1 цифра.</p>
           </div>
-          <button type="submit" className="btn primary" disabled={disabled}>
+          <Button type="submit" variant="primary" disabled={disabled}>
             {loading ? 'Создаём...' : 'Зарегистрироваться'}
-          </button>
+          </Button>
           {error && <div className="error">{error}</div>}
         </form>
       </div>
