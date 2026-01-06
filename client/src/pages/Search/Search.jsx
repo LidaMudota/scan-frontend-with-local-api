@@ -287,73 +287,75 @@ export default function Search() {
           </button>
         </form>
 
-        <div className="card results-card">
-          <h2>Сводка</h2>
-          {searchState.histogramsLoading && <Loader />}
-          {searchState.histogramsError && <div className="error">{searchState.histogramsError}</div>}
-          {!searchState.histogramsLoading && histogramRows.length > 0 && (
-            <div className="summary-scroll">
-              <Carousel itemsPerView={4}>
-                {histogramRows.map((row) => (
-                  <div className="summary-item card" key={row.date}>
-                    <div className="text-muted">{new Date(row.date).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}</div>
-                    <div>Всего: {row.total}</div>
-                    <div>Риски: {row.risk}</div>
-                  </div>
-                ))}
-              </Carousel>
+        <div className="search-column">
+          <div className="card results-card">
+            <h2>Сводка</h2>
+            {searchState.histogramsLoading && <Loader />}
+            {searchState.histogramsError && <div className="error">{searchState.histogramsError}</div>}
+            {!searchState.histogramsLoading && histogramRows.length > 0 && (
+              <div className="summary-scroll">
+                <Carousel itemsPerView={4}>
+                  {histogramRows.map((row) => (
+                    <div className="summary-item card" key={row.date}>
+                      <div className="text-muted">{new Date(row.date).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}</div>
+                      <div>Всего: {row.total}</div>
+                      <div>Риски: {row.risk}</div>
+                    </div>
+                  ))}
+                </Carousel>
+              </div>
+            )}
+          </div>
+
+          <section className="results-section" ref={resultsRef}>
+            <div className="results-header">
+              <h2>Результаты поиска</h2>
+              {resultsTotal > 0 && (
+                <p className="results-subtitle">Показаны первые {Math.min(resultsShown, resultsTotal)} из {resultsTotal}</p>
+              )}
             </div>
-          )}
+
+            <div className="cards-grid">
+              {searchState.docsLoading && searchState.docs.length === 0 && (
+                <div className="skeleton-list">
+                  {[...Array(4)].map((_, idx) => (
+                    <div className="card doc-skeleton" key={idx}>
+                      <div className="skeleton skeleton--meta" />
+                      <div className="skeleton skeleton--title" />
+                      <div className="skeleton skeleton--text" />
+                      <div className="skeleton skeleton--text" />
+                      <div className="skeleton skeleton--footer" />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {!searchState.docsLoading && resultsTotal === 0 && !searchState.histogramsLoading && !searchState.histogramsError && (
+                <div className="empty-state card">
+                  <h3>Ничего не найдено</h3>
+                  <p className="text-muted">Попробуйте изменить параметры запроса или проверить корректность ИНН.</p>
+                </div>
+              )}
+
+              {renderDocs()}
+              {searchState.docsLoading && searchState.docs.length > 0 && (
+                <div className="inline-loader">
+                  <Loader />
+                </div>
+              )}
+              {searchState.docsError && <div className="error">{searchState.docsError}</div>}
+            </div>
+
+            {canLoadMore && (
+              <div className="load-more">
+                <button className="btn primary" onClick={() => dispatch(loadDocuments({ token }))} disabled={searchState.docsLoading}>
+                  {searchState.docsLoading ? 'Загрузка...' : 'Показать больше'}
+                </button>
+              </div>
+            )}
+          </section>
         </div>
       </div>
-
-      <section className="results-section" ref={resultsRef}>
-        <div className="results-header">
-          <h2>Результаты поиска</h2>
-          {resultsTotal > 0 && (
-            <p className="results-subtitle">Показаны первые {Math.min(resultsShown, resultsTotal)} из {resultsTotal}</p>
-          )}
-        </div>
-
-        <div className="cards-grid">
-          {searchState.docsLoading && searchState.docs.length === 0 && (
-            <div className="skeleton-list">
-              {[...Array(4)].map((_, idx) => (
-                <div className="card doc-skeleton" key={idx}>
-                  <div className="skeleton skeleton--meta" />
-                  <div className="skeleton skeleton--title" />
-                  <div className="skeleton skeleton--text" />
-                  <div className="skeleton skeleton--text" />
-                  <div className="skeleton skeleton--footer" />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {!searchState.docsLoading && resultsTotal === 0 && !searchState.histogramsLoading && !searchState.histogramsError && (
-            <div className="empty-state card">
-              <h3>Ничего не найдено</h3>
-              <p className="text-muted">Попробуйте изменить параметры запроса или проверить корректность ИНН.</p>
-            </div>
-          )}
-
-          {renderDocs()}
-          {searchState.docsLoading && searchState.docs.length > 0 && (
-            <div className="inline-loader">
-              <Loader />
-            </div>
-          )}
-          {searchState.docsError && <div className="error">{searchState.docsError}</div>}
-        </div>
-
-        {canLoadMore && (
-          <div className="load-more">
-            <button className="btn primary" onClick={() => dispatch(loadDocuments({ token }))} disabled={searchState.docsLoading}>
-              {searchState.docsLoading ? 'Загрузка...' : 'Показать больше'}
-            </button>
-          </div>
-        )}
-      </section>
     </div>
   );
 }

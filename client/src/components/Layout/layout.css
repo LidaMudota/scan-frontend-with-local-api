@@ -40,6 +40,17 @@ a:hover {
   color: var(--accent);
 }
 
+.logo-link {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.logo-link:hover {
+  text-decoration: none;
+}
+
 .nav {
   display: flex;
   gap: 16px;

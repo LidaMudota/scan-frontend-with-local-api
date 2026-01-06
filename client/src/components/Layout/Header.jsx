@@ -29,7 +29,7 @@ export default function Header() {
 
   return (
     <header className="header">
-      <div className="logo">ScanCorp</div>
+      <Link to="/" className="logo logo-link">ScanCorp</Link>
       <nav className="nav">
         <Link to="#">Тарифы</Link>
         <Link to="#">FAQ</Link>

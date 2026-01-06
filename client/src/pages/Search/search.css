@@ -7,12 +7,19 @@
 .search-grid {
   display: grid;
   grid-template-columns: 380px 1fr;
-  gap: 12px;
+  gap: 16px;
   align-items: start;
   min-width: 0;
 }
 
 .search-grid > * {
+  min-width: 0;
+}
+
+.search-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   min-width: 0;
 }
 
